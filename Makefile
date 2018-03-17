@@ -1,4 +1,6 @@
 # Server
+# get env var
+MONGO_HOST=$(MONGO_HOST)
 
 clean:
 	rm -rf client/build
