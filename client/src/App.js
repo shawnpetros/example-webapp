@@ -3,39 +3,57 @@ import logo from './logo.svg';
 import './App.css';
 
 const style = {
+  container: {
+    marginTop: 30,
+  },
   form: {
     width: '50%',
     margin: 'auto',
   },
+  submit: {
+    marginRight: 10,
+  }
 };
 
 class App extends Component {
   state = {
-    hello: '',
     result: null,
-    data: '',
-    method: 'post',
-    get: false,
+    todo: '',
+    todos: [],
   };
 
-  componentDidMount() {
-    this.callApi()
-      .then(res => this.setState({ hello: res.express }))
+  componentWillMount() {
+    this.get();
+  }
+
+  get() {
+    this.callApi('get')
+      .then(res => this.setState({ todos: res }))
       .catch(err => console.log(err));
   }
 
-  handleClick(evt) {
+  post(evt) {
     evt.preventDefault();
-    console.log(this.state);
-    this.callApi(this.state.method)
-      .then(res => this.setState({ get: true, result: res }))
+    this.callApi('post')
+      .then((result) => {
+        this.get();
+        this.setState({ result, todo: '' });
+      })
+      .catch(err => console.log(err));
+  }
+
+  delete(evt) {
+    evt.preventDefault();
+    this.callApi('delete')
+      .then((result) => {
+        this.get();
+        this.setState({ result, todo: '' });
+      })
       .catch(err => console.log(err));
   }
 
   handleChange(evt) {
-    if (evt.target.name !== 'method') {
-      evt.preventDefault();
-    }
+    evt.preventDefault();
     this.setState({ [evt.target.name]: evt.target.value });
   }
 
@@ -49,15 +67,21 @@ class App extends Component {
       case 'post':
         response = await fetch('/api/data', {
           method: 'POST',
-          body: JSON.stringify({ data: this.state.data }),
+          body: JSON.stringify({ todo: this.state.todo }),
           headers: new Headers({
             'Content-Type': 'application/json'
           }),
         });
         body = await response.json();
         break;
+      case 'delete':
+        response = await fetch('/api/data', {
+          method: 'DELETE',
+        });
+        body = await response.json();
+        break;
       default:
-        response = await fetch('/api/hello');
+        response = await fetch('/api/data');
         body = await response.json();
         break;
     }
@@ -67,6 +91,10 @@ class App extends Component {
     return body;
   };
 
+  makeToDo(item) {
+    return <div className="uk-alert uk-margin" key={ item._id }>{ item.todo }</div>
+  }
+
   render() {
     return (
       <div className="App">
@@ -74,25 +102,21 @@ class App extends Component {
           <img src={logo} className="App-logo" alt="logo" />
           <h1 className="App-title">Welcome to React</h1>
         </header>
-        {
-          this.state.get ? <p>Data from DB!</p> :
-          <div>
-            <p className="App-intro">{ this.state.hello }</p>
+          <div style={ style.container }>
+            <div className="todos">
+              { this.state.todos.map(this.makeToDo) }
+            </div>
             <form style={ style.form }>
               <fieldset className="uk-fieldset">
-                <legend className="uk-legend">POST/GET from DB</legend>
+                <legend className="uk-legend">A cool example ToDo App</legend>
                 <div className="uk-margin">
-                  <input className="uk-input" type="text" name="data" placeholder="some data for the db" onInput={evt => this.handleChange(evt)} />
+                  <input className="uk-input" type="text" name="todo" placeholder="get milk from store" value={this.state.todo} onInput={evt => this.handleChange(evt)} />
                 </div>
-                <div className="uk-margin uk-grid-small uk-child-width-auto uk-grid">
-                  <label><input className="uk-radio" type="radio" name="method" value="post" onChange={evt => this.handleChange(evt)} checked={this.state.method === 'post'} /> POST</label>
-                  <label><input className="uk-radio" type="radio" name="method" value="get" onChange={evt => this.handleChange(evt)} checked={this.state.method === 'get'} /> GET</label>
-                </div>
-                <button className="uk-button uk-button-primary" style={ style.submit } onClick={evt => this.handleClick(evt)} >SUBMIT</button>
+                <button className="uk-button uk-button-primary" style={ style.submit } onClick={evt => this.post(evt)} >ADD</button>
+                <button className="uk-button uk-button-secondary" onClick={evt => this.delete(evt)} >DROP</button>
               </fieldset>
             </form>
           </div>
-        }
       </div>
     );
   }

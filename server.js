@@ -7,7 +7,7 @@ const port = process.env.PORT || 5000;
 
 const handleErrors = (res, result) => {
   if (result instanceof Error) {
-    res.send(500, { error: result.message });
+    res.status(500).send({ error: result.message });
   } else {
     res.send(result);
   }
@@ -17,10 +17,6 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.use(express.static('client/build'));
-
-app.get('/api/hello', (req, res) => {
-  res.send({ express: 'Hello from Express!'});
-});
 
 app.get('/api/data', async (req, res) => {
   const r = await mongod.getAll();

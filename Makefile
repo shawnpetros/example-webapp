@@ -3,8 +3,14 @@
 clean:
 	rm -rf client/build
 
-build: clean
+install: clean
+	npm i && cd client && npm i
+
+build: install
 	cd client && npm run build
+
+dev: install
+	npm run dev
 
 run: build
 	npm run server
